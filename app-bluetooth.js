@@ -5,7 +5,7 @@ let bluetoothDevice = null;
 let txCharacteristic = null;
 let acumuladorTexto = "";
 
-// Configuración del Canvas (Trazador PPG en vivo)
+// Configuración del Canvas (Trazador PPG)
 const canvas = document.getElementById("ppgCanvas");
 const ctx = canvas.getContext("2d");
 let dataBuffer = new Array(200).fill(0);
@@ -20,7 +20,7 @@ resizeCanvas();
 function drawGraph() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Dibujar líneas de cuadrícula del fondo
+  // Cuadrícula de fondo
   ctx.strokeStyle = "rgba(117, 170, 219, 0.1)";
   ctx.lineWidth = 1;
   for (let y = 0; y <= canvas.height; y += canvas.height / 4) {
@@ -30,14 +30,13 @@ function drawGraph() {
     ctx.stroke();
   }
 
-  // Dibujar curva de la señal del sensor KY-039
-  ctx.strokeStyle = "#75AADB"; // Azul Albiceleste
+  // Trazo de la señal del sensor
+  ctx.strokeStyle = "#75AADB"; // Albiceleste
   ctx.lineWidth = 2;
   ctx.beginPath();
 
   const step = canvas.width / (dataBuffer.length - 1);
   for (let i = 0; i < dataBuffer.length; i++) {
-    // Escalar valor de 0-1024 a la altura del canvas
     const normalizedY = canvas.height - (dataBuffer[i] / 1024) * canvas.height;
     const x = i * step;
 
@@ -49,7 +48,68 @@ function drawGraph() {
 }
 drawGraph();
 
-// Lógica Web Bluetooth API
+/* =============================================================
+   ALGORITMO DE DETECCIÓN DE PICOS Y CÁLCULO DE BPM
+   ============================================================= */
+let lastPeakTime = 0;           // Tiempo del último latido detectado (ms)
+let ibiHistory = [];            // Historial de intervalos entre latidos (ms)
+let rawHistory = [];            // Historial reciente para filtro de suavizado
+let threshold = 550;            // Umbral inicial de corte analógico
+let isAboveThreshold = false;   // Estado de la señal sobre el umbral
+const MIN_BEAT_INTERVAL = 300;  // Período refractario (Máx 200 BPM)
+const MAX_BEAT_INTERVAL = 2000; // Límite inferior (Mín 30 BPM)
+
+function processPulseData(rawValue) {
+  const currentTime = performance.now();
+
+  // 1. Filtro de promedio móvil (Suaviza 3 lecturas para reducir ruido)
+  rawHistory.push(rawValue);
+  if (rawHistory.length > 3) rawHistory.shift();
+  const smoothedValue = rawHistory.reduce((a, b) => a + b, 0) / rawHistory.length;
+
+  // 2. Ajuste adaptativo del umbral dinámico según la señal
+  threshold = threshold * 0.95 + smoothedValue * 0.05;
+
+  // 3. Detección de cresta/pico (Latido)
+  if (smoothedValue > threshold + 15 && !isAboveThreshold) {
+    isAboveThreshold = true;
+
+    if (lastPeakTime !== 0) {
+      const ibi = currentTime - lastPeakTime; // Intervalo entre latidos
+
+      // Validar si el pulso está dentro de rangos fisiológicos normales
+      if (ibi >= MIN_BEAT_INTERVAL && ibi <= MAX_BEAT_INTERVAL) {
+        ibiHistory.push(ibi);
+        if (ibiHistory.length > 10) ibiHistory.shift(); // Guardar los últimos 10 latidos
+
+        // Calcular BPM promedio
+        const avgIbi = ibiHistory.reduce((a, b) => a + b, 0) / ibiHistory.length;
+        const realBpm = Math.round(60000 / avgIbi);
+
+        // Calcular HRV (RMSSD - Variabilidad del Ritmo Cardíaco)
+        let sumSquaredDiffs = 0;
+        for (let i = 1; i < ibiHistory.length; i++) {
+          let diff = ibiHistory[i] - ibiHistory[i - 1];
+          sumSquaredDiffs += diff * diff;
+        }
+        const hrv = ibiHistory.length > 1 ? Math.round(Math.sqrt(sumSquaredDiffs / (ibiHistory.length - 1))) : 0;
+
+        // Actualizar UI con valores reales
+        document.getElementById("val-bpm").innerText = realBpm;
+        document.getElementById("val-hrv").innerText = hrv;
+        document.getElementById("val-pi").innerText = ((smoothedValue / 1024) * 2.5).toFixed(1);
+        document.getElementById("val-estres").innerText = Math.min(Math.max(Math.round(100 - (hrv * 1.2)), 10), 95);
+      }
+    }
+    lastPeakTime = currentTime;
+  } else if (smoothedValue < threshold) {
+    isAboveThreshold = false;
+  }
+}
+
+/* =============================================================
+   CONEXIÓN BLUETOOTH Y RECEPCIÓN DE DATOS
+   ============================================================= */
 async function conectarBluetooth() {
   try {
     document.getElementById("bt-status-text").innerText = "Buscando...";
@@ -91,15 +151,12 @@ function handleDataReceived(event) {
     if (linea.startsWith("PULSE:")) {
       const val = parseInt(linea.replace("PULSE:", ""));
 
-      // Agregar punto al buffer del gráfico
+      // Renderizar en el Canvas
       dataBuffer.push(val);
       dataBuffer.shift();
 
-      // Cálculo de métricas simuladas a partir de la señal
-      document.getElementById("val-bpm").innerText = Math.round(60 + (val % 30));
-      document.getElementById("val-hrv").innerText = Math.round(40 + (val % 25));
-      document.getElementById("val-pi").innerText = (1.2 + (val / 1000)).toFixed(1);
-      document.getElementById("val-estres").innerText = Math.round(20 + (val % 15));
+      // Procesar pulso real con el algoritmo
+      processPulseData(val);
     }
   }
 }
