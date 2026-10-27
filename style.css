@@ -2,10 +2,11 @@
   --albiceleste: #75AADB;
   --albiceleste-glow: rgba(117, 170, 219, 0.4);
   --sol-dorado: #F6B40E;
+  --sol-dorado-glow: rgba(246, 180, 14, 0.4);
   --blanco: #FFFFFF;
   --bg-dark: #0a1128;
-  --card-bg: rgba(15, 23, 42, 0.75);
-  --border-card: rgba(117, 170, 219, 0.2);
+  --card-bg: rgba(15, 23, 42, 0.85);
+  --border-card: rgba(117, 170, 219, 0.25);
   --text-muted: #94a3b8;
 }
 
@@ -18,14 +19,106 @@
 body {
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   background-color: var(--bg-dark);
-  background-image: radial-gradient(circle at 50% 0%, #1c2d5a 0%, var(--bg-dark) 75%);
+  background-image: radial-gradient(circle at 50% 20%, #1c2d5a 0%, var(--bg-dark) 80%);
   color: var(--blanco);
   min-height: 100vh;
-  padding: 30px;
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
+  padding: 20px;
 }
 
+/* ==========================================
+   ESTILOS DE LA PÁGINA PRINCIPAL (INDEX.HTML)
+   ========================================== */
+.main-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-card);
+  border-radius: 24px;
+  padding: 40px 30px;
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(117, 170, 219, 0.15);
+  backdrop-filter: blur(16px);
+}
+
+.sol-logo {
+  font-size: 2.8rem;
+  margin-bottom: 10px;
+  display: inline-block;
+  filter: drop-shadow(0 0 10px var(--sol-dorado-glow));
+}
+
+.main-title {
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--albiceleste);
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+  text-shadow: 0 0 12px var(--albiceleste-glow);
+}
+
+.main-subtitle {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin-bottom: 30px;
+  line-height: 1.4;
+}
+
+.button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.btn-landing {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  padding: 16px 20px;
+  border-radius: 14px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.25s ease;
+  border: none;
+  cursor: pointer;
+}
+
+/* Botón 1: Gamepad (Azul Albiceleste) */
+.btn-gamepad-arg {
+  background: linear-gradient(135deg, #75AADB 0%, #3b82f6 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 15px var(--albiceleste-glow);
+}
+
+.btn-gamepad-arg:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(117, 170, 219, 0.6);
+  filter: brightness(1.1);
+}
+
+/* Botón 2: Visor (Dorado Sol de Mayo) */
+.btn-visor-arg {
+  background: linear-gradient(135deg, #F6B40E 0%, #d97706 100%);
+  color: #0f172a;
+  box-shadow: 0 4px 15px var(--sol-dorado-glow);
+}
+
+.btn-visor-arg:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(246, 180, 14, 0.6);
+  filter: brightness(1.1);
+}
+
+/* ==========================================
+   ESTILOS DE LA PÁGINA VISOR (VISOR.HTML)
+   ========================================== */
 .dashboard-container {
   width: 100%;
   max-width: 1100px;
@@ -34,7 +127,6 @@ body {
   gap: 25px;
 }
 
-/* Header Navbar */
 .header-bar {
   display: flex;
   justify-content: space-between;
@@ -56,7 +148,6 @@ body {
   margin-top: 4px;
 }
 
-/* Panel Status Bluetooth Superior Derecho */
 .bt-control-panel {
   background: rgba(15, 23, 42, 0.9);
   border: 1px solid var(--border-card);
@@ -73,7 +164,7 @@ body {
 }
 
 .btn-conectar-visor {
-  background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+  background: linear-gradient(135deg, #75AADB 0%, #3b82f6 100%);
   color: white;
   border: none;
   padding: 8px 18px;
@@ -81,7 +172,7 @@ body {
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 0 12px var(--albiceleste-glow);
 }
 
 .btn-conectar-visor:hover {
@@ -89,125 +180,10 @@ body {
   transform: translateY(-1px);
 }
 
-/* Grid de las 4 Tarjetas de Métricas */
 .metrics-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 20px;
 }
 
-@media (max-width: 900px) {
-  .metrics-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-.metric-card {
-  background: var(--card-bg);
-  border: 1px solid var(--border-card);
-  border-radius: 14px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(10px);
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.8rem;
-  font-weight: 800;
-  color: #cbd5e1;
-  letter-spacing: 0.5px;
-}
-
-.card-main-val {
-  margin: 20px 0;
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-}
-
-.val-display {
-  font-size: 2.2rem;
-  font-weight: 900;
-}
-
-.val-unit {
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  font-weight: 600;
-}
-
-.card-footer-desc h4 {
-  font-size: 0.8rem;
-  color: #e2e8f0;
-  margin-bottom: 4px;
-}
-
-.card-footer-desc p {
-  font-size: 0.73rem;
-  color: var(--text-muted);
-  line-height: 1.3;
-}
-
-/* Variaciones de Color de las tarjetas adaptadas */
-.color-red { color: #ef4444; }
-.color-green { color: #10b981; }
-.color-cyan { color: var(--albiceleste); }
-.color-gold { color: var(--sol-dorado); }
-
-/* Seccion Inferior del Grafico PPG */
-.graph-section {
-  background: var(--card-bg);
-  border: 1px solid var(--border-card);
-  border-radius: 14px;
-  padding: 22px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(10px);
-}
-
-.graph-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.graph-title-group h3 {
-  font-size: 0.95rem;
-  font-weight: 800;
-  color: var(--blanco);
-  letter-spacing: 0.5px;
-}
-
-.graph-title-group p {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  margin-top: 3px;
-}
-
-.tag-status {
-  background: rgba(30, 41, 59, 0.8);
-  border: 1px solid var(--border-card);
-  color: var(--text-muted);
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 5px 12px;
-  border-radius: 6px;
-}
-
-.canvas-wrapper {
-  width: 100%;
-  height: 220px;
-  position: relative;
-}
-
-canvas {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
+@media (max-width
