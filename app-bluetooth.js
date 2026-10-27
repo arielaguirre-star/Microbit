@@ -5,7 +5,101 @@ let bluetoothDevice = null;
 let txCharacteristic = null;
 let acumuladorTexto = "";
 
-// Configuración del Canvas (Trazador PPG)
+/* =============================================================
+   1. INICIALIZACIÓN DE MOTOR 3D (THREE.JS) PARA EL CORAZÓN
+   ============================================================= */
+let scene3D, camera3D, renderer3D, heartMesh;
+let targetScale = 1.0;
+
+function init3DHeart() {
+  const container = document.getElementById("heart-3d-container");
+  if (!container) return;
+
+  scene3D = new THREE.Scene();
+  camera3D = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+  camera3D.position.z = 4.5;
+
+  renderer3D = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+  renderer3D.setSize(45, 45);
+  renderer3D.setPixelRatio(window.devicePixelRatio);
+  container.appendChild(renderer3D.domElement);
+
+  // Iluminación
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+  scene3D.add(ambientLight);
+
+  const pointLight = new THREE.PointLight(0xffffff, 1.2);
+  pointLight.position.set(2, 3, 4);
+  scene3D.add(pointLight);
+
+  // Forma paramétrica 2D del Corazón extruida a 3D
+  const x = 0, y = 0;
+  const heartShape = new THREE.Shape();
+  heartShape.moveTo(x + 0.25, y + 0.25);
+  heartShape.bezierCurveTo(x + 0.25, y + 0.25, x + 0.2, y, x, y);
+  heartShape.bezierCurveTo(x - 0.3, y, x - 0.3, y + 0.35, x - 0.3, y + 0.35);
+  heartShape.bezierCurveTo(x - 0.3, y + 0.55, x - 0.1, y + 0.77, x + 0.25, y + 0.95);
+  heartShape.bezierCurveTo(x + 0.6, y + 0.77, x + 0.8, y + 0.55, x + 0.8, y + 0.35);
+  heartShape.bezierCurveTo(x + 0.8, y + 0.35, x + 0.8, y, x + 0.5, y);
+  heartShape.bezierCurveTo(x + 0.35, y, x + 0.25, y + 0.25, x + 0.25, y + 0.25);
+
+  const extrudeSettings = {
+    depth: 0.2,
+    bevelEnabled: true,
+    bevelSegments: 3,
+    steps: 2,
+    bevelSize: 0.08,
+    bevelThickness: 0.08
+  };
+
+  const geometry = new THREE.ExtrudeGeometry(heartShape, extrudeSettings);
+  geometry.center();
+
+  // Material Rojo Metálico con estilo moderno
+  const material = new THREE.MeshPhongMaterial({
+    color: 0xef4444,
+    emissive: 0x330000,
+    specular: 0xffffff,
+    shininess: 100
+  });
+
+  heartMesh = new THREE.Mesh(geometry, material);
+  heartMesh.rotation.x = Math.PI; // Orientación correcta
+  scene3D.add(heartMesh);
+
+  animate3D();
+}
+
+function animate3D() {
+  requestAnimationFrame(animate3D);
+
+  if (heartMesh) {
+    // Rotación suave continua
+    heartMesh.rotation.y += 0.02;
+
+    // Animación de retorno elástico a tamaño normal
+    heartMesh.scale.x += (targetScale - heartMesh.scale.x) * 0.15;
+    heartMesh.scale.y += (targetScale - heartMesh.scale.y) * 0.15;
+    heartMesh.scale.z += (targetScale - heartMesh.scale.z) * 0.15;
+
+    if (targetScale > 1.0) {
+      targetScale -= 0.03; // Reducir escala gradualmente tras el latido
+    }
+  }
+
+  renderer3D.render(scene3D, camera3D);
+}
+
+// Activa el golpe de latido en el modelo 3D
+function trigger3DPulse() {
+  targetScale = 1.45; // Amplía el tamaño del corazón
+}
+
+window.addEventListener("DOMContentLoaded", init3DHeart);
+
+/* =============================================================
+   2. CONFIGURACIÓN DEL CANVAS PPG (2D)
+   ============================================================= */
 const canvas = document.getElementById("ppgCanvas");
 const ctx = canvas.getContext("2d");
 let dataBuffer = new Array(200).fill(0);
@@ -20,7 +114,6 @@ resizeCanvas();
 function drawGraph() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Cuadrícula de fondo
   ctx.strokeStyle = "rgba(117, 170, 219, 0.1)";
   ctx.lineWidth = 1;
   for (let y = 0; y <= canvas.height; y += canvas.height / 4) {
@@ -30,8 +123,7 @@ function drawGraph() {
     ctx.stroke();
   }
 
-  // Trazo de la señal del sensor
-  ctx.strokeStyle = "#75AADB"; // Albiceleste
+  ctx.strokeStyle = "#75AADB";
   ctx.lineWidth = 2;
   ctx.beginPath();
 
@@ -49,44 +141,41 @@ function drawGraph() {
 drawGraph();
 
 /* =============================================================
-   ALGORITMO DE DETECCIÓN DE PICOS Y CÁLCULO DE BPM
+   3. ALGORITMO DE DETECCIÓN DE PICOS + INTEGRACIÓN 3D
    ============================================================= */
-let lastPeakTime = 0;           // Tiempo del último latido detectado (ms)
-let ibiHistory = [];            // Historial de intervalos entre latidos (ms)
-let rawHistory = [];            // Historial reciente para filtro de suavizado
-let threshold = 550;            // Umbral inicial de corte analógico
-let isAboveThreshold = false;   // Estado de la señal sobre el umbral
-const MIN_BEAT_INTERVAL = 300;  // Período refractario (Máx 200 BPM)
-const MAX_BEAT_INTERVAL = 2000; // Límite inferior (Mín 30 BPM)
+let lastPeakTime = 0;
+let ibiHistory = [];
+let rawHistory = [];
+let threshold = 550;
+let isAboveThreshold = false;
+const MIN_BEAT_INTERVAL = 300;
+const MAX_BEAT_INTERVAL = 2000;
 
 function processPulseData(rawValue) {
   const currentTime = performance.now();
 
-  // 1. Filtro de promedio móvil (Suaviza 3 lecturas para reducir ruido)
   rawHistory.push(rawValue);
   if (rawHistory.length > 3) rawHistory.shift();
   const smoothedValue = rawHistory.reduce((a, b) => a + b, 0) / rawHistory.length;
 
-  // 2. Ajuste adaptativo del umbral dinámico según la señal
   threshold = threshold * 0.95 + smoothedValue * 0.05;
 
-  // 3. Detección de cresta/pico (Latido)
   if (smoothedValue > threshold + 15 && !isAboveThreshold) {
     isAboveThreshold = true;
 
-    if (lastPeakTime !== 0) {
-      const ibi = currentTime - lastPeakTime; // Intervalo entre latidos
+    // Disparar latido en el corazón 3D
+    trigger3DPulse();
 
-      // Validar si el pulso está dentro de rangos fisiológicos normales
+    if (lastPeakTime !== 0) {
+      const ibi = currentTime - lastPeakTime;
+
       if (ibi >= MIN_BEAT_INTERVAL && ibi <= MAX_BEAT_INTERVAL) {
         ibiHistory.push(ibi);
-        if (ibiHistory.length > 10) ibiHistory.shift(); // Guardar los últimos 10 latidos
+        if (ibiHistory.length > 10) ibiHistory.shift();
 
-        // Calcular BPM promedio
         const avgIbi = ibiHistory.reduce((a, b) => a + b, 0) / ibiHistory.length;
         const realBpm = Math.round(60000 / avgIbi);
 
-        // Calcular HRV (RMSSD - Variabilidad del Ritmo Cardíaco)
         let sumSquaredDiffs = 0;
         for (let i = 1; i < ibiHistory.length; i++) {
           let diff = ibiHistory[i] - ibiHistory[i - 1];
@@ -94,7 +183,6 @@ function processPulseData(rawValue) {
         }
         const hrv = ibiHistory.length > 1 ? Math.round(Math.sqrt(sumSquaredDiffs / (ibiHistory.length - 1))) : 0;
 
-        // Actualizar UI con valores reales
         document.getElementById("val-bpm").innerText = realBpm;
         document.getElementById("val-hrv").innerText = hrv;
         document.getElementById("val-pi").innerText = ((smoothedValue / 1024) * 2.5).toFixed(1);
@@ -108,7 +196,7 @@ function processPulseData(rawValue) {
 }
 
 /* =============================================================
-   CONEXIÓN BLUETOOTH Y RECEPCIÓN DE DATOS
+   4. CONEXIÓN WEB BLUETOOTH API
    ============================================================= */
 async function conectarBluetooth() {
   try {
@@ -150,12 +238,9 @@ function handleDataReceived(event) {
     linea = linea.trim();
     if (linea.startsWith("PULSE:")) {
       const val = parseInt(linea.replace("PULSE:", ""));
-
-      // Renderizar en el Canvas
       dataBuffer.push(val);
       dataBuffer.shift();
 
-      // Procesar pulso real con el algoritmo
       processPulseData(val);
     }
   }
