@@ -1,1 +1,35 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visor micro:bit - Albiceleste</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
+  <div class="container" style="max-width: 700px;">
+    <a href="index.html" style="color: var(--albiceleste); text-decoration: none; font-size: 0.9rem;">← Volver al Menú Principal</a>
+    
+    <h1>Visor micro:bit</h1>
+    <p id="status-text" style="font-weight: bold; margin-bottom: 20px;">Estado: Desconectado</p>
+
+    <!-- Botones de Control Bluetooth -->
+    <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;">
+      <button id="btn-conectar" class="btn-moderno btn-gamepad" onclick="conectarBluetooth()">
+        📡 Conectar micro:bit
+      </button>
+      <button id="btn-desconectar" class="btn-moderno btn-visor" onclick="desconectarBluetooth()" style="display: none;">
+        ❌ Desconectar
+      </button>
+    </div>
+
+    <!-- Pantalla/Terminal donde se visibilizan los datos recibidos -->
+    <div style="background: rgba(0, 0, 0, 0.5); padding: 15px; border-radius: 10px; text-align: left; height: 200px; overflow-y: auto;">
+      <pre id="visor-output" style="color: #00FF66; margin: 0; font-family: monospace;">// Esperando datos por Bluetooth...</pre>
+    </div>
+  </div>
+
+  <script src="app-bluetooth.js"></script>
+</body>
+</html>
