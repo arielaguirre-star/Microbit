@@ -1,1 +1,94 @@
+:root {
+  --albiceleste: #75AADB;
+  --albiceleste-hover: #5a93c7;
+  --sol-dorado: #F6B40E;
+  --blanco: #FFFFFF;
+  --azul-oscuro: #0a192f;
+  --gris-tarjeta: rgba(255, 255, 255, 0.08);
+}
 
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: radial-gradient(circle at top, #1e3c72 0%, var(--azul-oscuro) 100%);
+  color: var(--blanco);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.container {
+  text-align: center;
+  padding: 2rem;
+  max-width: 500px;
+  width: 90%;
+  background: var(--gris-tarjeta);
+  backdrop-filter: blur(12px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+h1 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(180deg, #FFFFFF 0%, var(--albiceleste) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.sol-icon {
+  color: var(--sol-dorado);
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Botones Modernos */
+.btn-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.btn-moderno {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 24px;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+  outline: none;
+}
+
+.btn-gamepad {
+  background: linear-gradient(135deg, var(--albiceleste) 0%, #4a80b4 100%);
+  color: var(--blanco);
+  box-shadow: 0 4px 15px rgba(117, 170, 219, 0.4);
+}
+
+.btn-visor {
+  background: linear-gradient(135deg, var(--sol-dorado) 0%, #d49700 100%);
+  color: #1a1a1a;
+  box-shadow: 0 4px 15px rgba(246, 180, 14, 0.3);
+}
+
+.btn-moderno:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+  filter: brightness(1.1);
+}
+
+.btn-moderno:active {
+  transform: translateY(0);
+}
