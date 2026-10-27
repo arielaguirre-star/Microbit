@@ -3,31 +3,64 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Visor micro:bit - Albiceleste</title>
+  <title>Visor micro:bit</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <div class="container" style="max-width: 700px;">
-    <a href="index.html" style="color: var(--albiceleste); text-decoration: none; font-size: 0.9rem;">← Volver al Menú Principal</a>
+  <div class="header-nav">
+    <a href="index.html" class="btn-back">← Volver al Menú</a>
+  </div>
+
+  <div class="visor-container">
     
-    <h1>Visor micro:bit</h1>
-    <p id="status-text" style="font-weight: bold; margin-bottom: 20px;">Estado: Desconectado</p>
-
-    <!-- Botones de Control Bluetooth -->
-    <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;">
-      <button id="btn-conectar" class="btn-moderno btn-gamepad" onclick="conectarBluetooth()">
-        📡 Conectar micro:bit
-      </button>
-      <button id="btn-desconectar" class="btn-moderno btn-visor" onclick="desconectarBluetooth()" style="display: none;">
-        ❌ Desconectar
+    <!-- Barra de Estado Conexión Bluetooth -->
+    <div class="status-bar">
+      <div class="status-info">
+        <div id="status-dot" class="status-dot"></div>
+        <span id="status-text" style="font-weight: 600;">Desconectado</span>
+      </div>
+      <button id="btn-conectar" class="btn-bt" onclick="conectarBluetooth()">
+        Conectar micro:bit
       </button>
     </div>
 
-    <!-- Pantalla/Terminal donde se visibilizan los datos recibidos -->
-    <div style="background: rgba(0, 0, 0, 0.5); padding: 15px; border-radius: 10px; text-align: left; height: 200px; overflow-y: auto;">
-      <pre id="visor-output" style="color: #00FF66; margin: 0; font-family: monospace;">// Esperando datos por Bluetooth...</pre>
+    <!-- Grid de Mediciones de Sensores -->
+    <div class="grid-cards">
+      
+      <!-- Tarjeta 1: KY-039 Sensor en P0 -->
+      <div class="card">
+        <div class="card-title">❤️ Pulso / Sensor KY-039 (P0)</div>
+        <div class="card-value">
+          <span id="val-ky039">0</span>
+          <span class="card-unit">raw (0-1023)</span>
+        </div>
+        <div class="indicator-bar">
+          <div id="fill-ky039" class="indicator-fill"></div>
+        </div>
+      </div>
+
+      <!-- Tarjeta 2: Buzzer de 3 Patitas en P1 -->
+      <div class="card">
+        <div class="card-title">🔊 Buzzer (P1)</div>
+        <div class="card-value">
+          <span id="val-buzzer">OFF</span>
+        </div>
+        <p style="font-size: 0.8rem; color: #94a3b8; margin-top: 10px;">
+          Activa pitido automático en P1 al detectar valor alto (>600)
+        </p>
+      </div>
+
     </div>
+
+    <!-- Terminal de Logs / Salida de Datos -->
+    <div class="card">
+      <div class="card-title">📟 Consola de Datos UART</div>
+      <div class="terminal-box" id="visor-output">
+        // Esperando conexión Bluetooth...
+      </div>
+    </div>
+
   </div>
 
   <script src="app-bluetooth.js"></script>
