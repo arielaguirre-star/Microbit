@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Biofeedback Health Monitor - Selección Argentina</title>
   <link rel="stylesheet" href="style.css">
+  
+  <!-- Carga de Three.js para renderizado 3D -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
 
@@ -26,11 +29,12 @@
     <!-- Grid de 4 Métricas -->
     <section class="metrics-grid">
       
-      <!-- Card 1: Ritmo Cardíaco -->
+      <!-- Card 1: Ritmo Cardíaco con Corazón 3D -->
       <div class="metric-card">
         <div class="card-header">
           <span>RITMO CARDÍACO</span>
-          <span class="color-red">❤️</span>
+          <!-- Contenedor donde se renderiza el Corazón 3D -->
+          <div id="heart-3d-container" style="width: 45px; height: 45px;"></div>
         </div>
         <div class="card-main-val">
           <span class="val-display color-red" id="val-bpm">--</span>
@@ -57,7 +61,7 @@
         </div>
       </div>
 
-      <!-- Card 3: Índice Perfección -->
+      <!-- Card 3: Índice Perfusión -->
       <div class="metric-card">
         <div class="card-header">
           <span>ÍNDICE PERFUSION (PI)</span>
