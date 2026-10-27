@@ -254,15 +254,26 @@ function handleDataReceived(event) {
   acumuladorTexto += decoder.decode(value);
 
   let lineas = acumuladorTexto.split('\n');
-  acumuladorTexto = lineas.pop();
+  acumuladorTexto = lineas.pop(); // Guarda el fragmento incompleto para la siguiente lectura
 
   for (let linea of lineas) {
     linea = linea.trim();
+    if (linea.length === 0) continue;
+
+    // Acepta formatos como "PULSE:512" o simplemente números directos "512"
+    let val = NaN;
     if (linea.startsWith("PULSE:")) {
-      const val = parseInt(linea.replace("PULSE:", ""));
+      val = parseInt(linea.replace("PULSE:", "").trim());
+    } else if (!isNaN(parseInt(linea))) {
+      val = parseInt(linea);
+    }
+
+    if (!isNaN(val)) {
+      // 1. Agregar punto al gráfico en vivo
       dataBuffer.push(val);
       dataBuffer.shift();
 
+      // 2. Procesar con el algoritmo de detección de pulso
       processPulseData(val);
     }
   }
