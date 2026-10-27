@@ -111,34 +111,56 @@ function resizeCanvas() {
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
+// Reemplazar la función drawGraph en app-bluetooth.js por esta:
 function drawGraph() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  ctx.strokeStyle = "rgba(117, 170, 219, 0.1)";
-  ctx.lineWidth = 1;
-  for (let y = 0; y <= canvas.height; y += canvas.height / 4) {
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(canvas.width, y);
-    ctx.stroke();
-  }
+  const paddingLeft = 45; // Espacio reservado a la izquierda para los números de escala
+  const graphWidth = canvas.width - paddingLeft;
+  const graphHeight = canvas.height - 20; // Espacio para margen superior e inferior
 
-  ctx.strokeStyle = "#75AADB";
+  // 1. Dibujar Líneas Guía Horizontales y Texto de Escala (Eje Y)
+  const steps = [1024, 800, 600, 400, 200, 0];
+  ctx.font = "10px monospace";
+  ctx.fillStyle = "#94a3b8"; // Color del texto de la escala
+  ctx.textAlign = "right";
+  ctx.textBaseline = "middle";
+
+  steps.forEach((val) => {
+    // Calcular coordenada Y dentro del gráfico
+    const yRatio = 1 - (val / 1024);
+    const yPos = 10 + (yRatio * graphHeight);
+
+    // Dibujar línea de cuadrícula
+    ctx.strokeStyle = "rgba(117, 170, 219, 0.12)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(paddingLeft, yPos);
+    ctx.lineTo(canvas.width, yPos);
+    ctx.stroke();
+
+    // Dibujar texto del valor en el eje Y
+    ctx.fillText(val, paddingLeft - 8, yPos);
+  });
+
+  // 2. Dibujar Trazo de la Señal del Sensor KY-039
+  ctx.strokeStyle = "#75AADB"; // Azul Albiceleste
   ctx.lineWidth = 2;
   ctx.beginPath();
 
-  const step = canvas.width / (dataBuffer.length - 1);
+  const stepX = graphWidth / (dataBuffer.length - 1);
   for (let i = 0; i < dataBuffer.length; i++) {
-    const normalizedY = canvas.height - (dataBuffer[i] / 1024) * canvas.height;
-    const x = i * step;
+    const val = Math.min(Math.max(dataBuffer[i], 0), 1024); // Clampear a 0-1024
+    const normalizedY = 10 + (1 - (val / 1024)) * graphHeight;
+    const xPos = paddingLeft + (i * stepX);
 
-    if (i === 0) ctx.moveTo(x, normalizedY);
-    else ctx.lineTo(x, normalizedY);
+    if (i === 0) ctx.moveTo(xPos, normalizedY);
+    else ctx.lineTo(xPos, normalizedY);
   }
   ctx.stroke();
+
   requestAnimationFrame(drawGraph);
 }
-drawGraph();
 
 /* =============================================================
    3. ALGORITMO DE DETECCIÓN DE PICOS + INTEGRACIÓN 3D
