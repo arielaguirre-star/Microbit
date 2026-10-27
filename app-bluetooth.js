@@ -45,17 +45,28 @@ async function conectarBluetooth() {
   }
 }
 
+let acumuladorTexto = "";
+
 function handleDataReceived(event) {
   const value = event.target.value;
   const decoder = new TextDecoder('utf-8');
-  const datosTexto = decoder.decode(value);
-  
-  console.log("Datos recibidos de micro:bit:", datosTexto);
-  
-  // Puedes actualizar la UI de tu Visor aquí con los datos entrantes
-  const visorDisplay = document.getElementById("visor-output");
-  if (visorDisplay) {
-    visorDisplay.innerText += datosTexto + "\n";
+  acumuladorTexto += decoder.decode(value);
+
+  // Procesar cuando llega un salto de línea (\n)
+  let lineas = acumuladorTexto.split('\n');
+  acumuladorTexto = lineas.pop(); // Mantener el fragmento incompleto
+
+  for (let linea of lineas) {
+    linea = linea.trim();
+    if (linea.startsWith("PULSE:")) {
+      const valorAnalogo = parseInt(linea.replace("PULSE:", ""));
+      
+      // Mostrar en pantalla del Visor
+      const visorDisplay = document.getElementById("visor-output");
+      if (visorDisplay) {
+        visorDisplay.innerText = `[${new Date().toLocaleTimeString()}] KY-039 (P0): ${valorAnalogo} units\n` + visorDisplay.innerText;
+      }
+    }
   }
 }
 
