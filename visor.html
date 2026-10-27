@@ -3,63 +3,106 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Visor micro:bit</title>
+  <title>Biofeedback Health Monitor - Selección Argentina</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <div class="header-nav">
-    <a href="index.html" class="btn-back">← Volver al Menú</a>
-  </div>
-
-  <div class="visor-container">
+  <div class="dashboard-container">
     
-    <!-- Barra de Estado Conexión Bluetooth -->
-    <div class="status-bar">
-      <div class="status-info">
-        <div id="status-dot" class="status-dot"></div>
-        <span id="status-text" style="font-weight: 600;">Desconectado</span>
+    <!-- Header -->
+    <header class="header-bar">
+      <div class="title-area">
+        <h1>BIOFEEDBACK MONITOR</h1>
+        <p>SISTEMA DE MÚLTIPLES MÉTRICAS BIOMÉTRICAS EN TIEMPO REAL</p>
       </div>
-      <button id="btn-conectar" class="btn-bt" onclick="conectarBluetooth()">
-        Conectar micro:bit
-      </button>
-    </div>
 
-    <!-- Grid de Mediciones de Sensores -->
-    <div class="grid-cards">
+      <div class="bt-control-panel">
+        <span class="bt-status" id="bt-status-text">Bluetooth: Desconectado</span>
+        <button class="btn-conectar-visor" id="btn-connect" onclick="conectarBluetooth()">Conectar "visor"</button>
+      </div>
+    </header>
+
+    <!-- Grid de 4 Métricas -->
+    <section class="metrics-grid">
       
-      <!-- Tarjeta 1: KY-039 Sensor en P0 -->
-      <div class="card">
-        <div class="card-title">❤️ Pulso / Sensor KY-039 (P0)</div>
-        <div class="card-value">
-          <span id="val-ky039">0</span>
-          <span class="card-unit">raw (0-1023)</span>
+      <!-- Card 1: Ritmo Cardíaco -->
+      <div class="metric-card">
+        <div class="card-header">
+          <span>RITMO CARDÍACO</span>
+          <span class="color-red">❤️</span>
         </div>
-        <div class="indicator-bar">
-          <div id="fill-ky039" class="indicator-fill"></div>
+        <div class="card-main-val">
+          <span class="val-display color-red" id="val-bpm">--</span>
+          <span class="val-unit">BPM</span>
+        </div>
+        <div class="card-footer-desc">
+          <h4>Esperando señal del sensor...</h4>
+          <p>Mide la cantidad de contracciones del corazón por minuto (Latidos/min). Rango normal en reposo: 60-100 BPM.</p>
         </div>
       </div>
 
-      <!-- Tarjeta 2: Buzzer de 3 Patitas en P1 -->
-      <div class="card">
-        <div class="card-title">🔊 Buzzer (P1)</div>
-        <div class="card-value">
-          <span id="val-buzzer">OFF</span>
+      <!-- Card 2: Variabilidad HRV -->
+      <div class="metric-card">
+        <div class="card-header">
+          <span>VARIABILIDAD (HRV)</span>
         </div>
-        <p style="font-size: 0.8rem; color: #94a3b8; margin-top: 10px;">
-          Activa pitido automático en P1 al detectar valor alto (>600)
-        </p>
+        <div class="card-main-val">
+          <span class="val-display color-green" id="val-hrv">--</span>
+          <span class="val-unit">ms</span>
+        </div>
+        <div class="card-footer-desc">
+          <h4>Variación inter-latido (RMSSD)</h4>
+          <p>Mide la variación de tiempo entre cada latido. Valores altos indican buena recuperación y tono vagal óptimo.</p>
+        </div>
       </div>
 
-    </div>
-
-    <!-- Terminal de Logs / Salida de Datos -->
-    <div class="card">
-      <div class="card-title">📟 Consola de Datos UART</div>
-      <div class="terminal-box" id="visor-output">
-        // Esperando conexión Bluetooth...
+      <!-- Card 3: Índice Perfección -->
+      <div class="metric-card">
+        <div class="card-header">
+          <span>ÍNDICE PERFUSION (PI)</span>
+        </div>
+        <div class="card-main-val">
+          <span class="val-display color-cyan" id="val-pi">--</span>
+          <span class="val-unit">%</span>
+        </div>
+        <div class="card-footer-desc">
+          <h4>Flujo sanguíneo periférico</h4>
+          <p>Fuerza del pulso arterial en la yema del dedo. Un valor > 1.0% indica buena vascularización periférica.</p>
+        </div>
       </div>
-    </div>
+
+      <!-- Card 4: Nivel de Estrés -->
+      <div class="metric-card">
+        <div class="card-header">
+          <span>NIVEL DE ESTRÉS</span>
+        </div>
+        <div class="card-main-val">
+          <span class="val-display color-gold" id="val-estres">--</span>
+          <span class="val-unit">%</span>
+        </div>
+        <div class="card-footer-desc">
+          <h4>Cálculo neuro-autonómico</h4>
+          <p>Mide la dominancia del sistema nervioso simpático. > 65% indica cansancio o activación fisiológica.</p>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Gráfico Inferior PPG -->
+    <section class="graph-section">
+      <div class="graph-header">
+        <div class="graph-title-group">
+          <h3>SEÑAL FOTOPLETISMOGRÁFICA (PPG) INFRARROJA</h3>
+          <p>Representación gráfica de la variación del volumen de sangre con cada latido captado por el sensor KY-039.</p>
+        </div>
+        <div class="tag-status" id="graph-status">DESCONECTADO</div>
+      </div>
+
+      <div class="canvas-wrapper">
+        <canvas id="ppgCanvas"></canvas>
+      </div>
+    </section>
 
   </div>
 
